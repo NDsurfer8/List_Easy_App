@@ -140,12 +140,11 @@ export default function SelectFrame() {
       setPendingBoxes((prev) => [...prev, { id, ...box }]);
       setLoadingAi(true);
       try {
-        const result = await getAIValuation(thumbnailUri, {
-          x: box.x,
-          y: box.y,
-          width: box.width,
-          height: box.height,
-        });
+        const result = await getAIValuation(
+          thumbnailUri,
+          { x: box.x, y: box.y, width: box.width, height: box.height },
+          { width: thumbSize.width, height: thumbSize.height }
+        );
         setPendingItems((prev) => [
           ...prev,
           {
@@ -173,7 +172,7 @@ export default function SelectFrame() {
         setLoadingAi(false);
       }
     },
-    [thumbnailUri]
+    [thumbnailUri, thumbSize.width, thumbSize.height]
   );
 
   const saveListing = useCallback(async () => {
