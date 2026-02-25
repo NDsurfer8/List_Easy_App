@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,20 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Video } from 'expo-av';
 import * as VideoThumbnails from 'expo-video-thumbnails';
+import type { AVPlaybackStatus } from 'expo-av';
 import { useListEasy } from '../context/ListEasyContext';
 import { FrameSelector } from '../components/FrameSelector';
 import { getAIValuation } from '../lib/ai';
 import type { SelectionBox } from '../lib/types';
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type PendingItem = {
   id: string;
@@ -26,11 +32,17 @@ type PendingItem = {
 };
 
 export default function SelectFrame() {
-  const { videoUri } = useLocalSearchParams<{ videoUri: string }>();
+  const { uri, mediaType } = useLocalSearchParams<{ uri: string; mediaType: 'image' | 'video' }>();
   const router = useRouter();
   const { addListing, addItem } = useListEasy();
+  const videoRef = useRef<Video>(null);
+
+  const isVideo = mediaType === 'video';
+  const mediaUri = uri ?? '';
 
   const [frameTimeMs, setFrameTimeMs] = useState(0);
+  const [durationMs, setDurationMs] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const [thumbSize, setThumbSize] = useState({ width: 400, height: 300 });
   const [loadingThumb, setLoadingThumb] = useState(true);
@@ -39,26 +51,84 @@ export default function SelectFrame() {
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [title, setTitle] = useState('My room');
 
-  const loadThumbnail = useCallback(async () => {
-    if (!videoUri) return;
-    setLoadingThumb(true);
-    try {
-      const { uri, width, height } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-        time: frameTimeMs,
-        quality: 0.8,
-      });
-      setThumbnailUri(uri);
-      setThumbSize({ width: width ?? 400, height: height ?? 300 });
-    } catch (e) {
-      Alert.alert('Error', 'Could not load video frame. Try a different time.');
-    } finally {
-      setLoadingThumb(false);
-    }
-  }, [videoUri, frameTimeMs]);
+  const loadThumbnailFromVideo = useCallback(
+    async (atTimeMs?: number) => {
+      if (!mediaUri || !isVideo) return;
+      setLoadingThumb(true);
+      try {
+        const time = Math.min(
+          Math.max(0, atTimeMs ?? frameTimeMs),
+          durationMs || 0
+        );
+        const { uri: thumbUri, width, height } = await VideoThumbnails.getThumbnailAsync(mediaUri, {
+          time,
+          quality: 0.8,
+        });
+        setThumbnailUri(thumbUri);
+        setThumbSize({ width: width ?? 400, height: height ?? 300 });
+      } catch (e) {
+        Alert.alert('Error', 'Could not load video frame. Try a different time.');
+      } finally {
+        setLoadingThumb(false);
+      }
+    },
+    [mediaUri, isVideo, frameTimeMs, durationMs]
+  );
+
+  const loadImageDimensions = useCallback((imageUri: string) => {
+    Image.getSize(
+      imageUri,
+      (width, height) => setThumbSize({ width, height }),
+      () => setThumbSize({ width: 400, height: 300 })
+    );
+  }, []);
 
   useEffect(() => {
-    loadThumbnail();
-  }, [loadThumbnail]);
+    if (!mediaUri) return;
+    if (isVideo) {
+      loadThumbnailFromVideo();
+    } else {
+      setThumbnailUri(mediaUri);
+      loadImageDimensions(mediaUri);
+      setLoadingThumb(false);
+    }
+  }, [mediaUri, isVideo, loadImageDimensions]);
+
+  const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
+    if (!status.isLoaded) return;
+    if (status.durationMillis != null) setDurationMs((d) => (d === 0 ? status.durationMillis ?? 0 : d));
+    setFrameTimeMs((prev) => {
+      const pos = status.positionMillis ?? 0;
+      if (Math.abs(prev - pos) > 200) return pos;
+      return prev;
+    });
+    setIsPlaying(!!status.isPlaying);
+  }, []);
+
+  const seekTo = useCallback(
+    (ms: number) => {
+      const clamped = Math.min(Math.max(0, ms), durationMs || 0);
+      setFrameTimeMs(clamped);
+      videoRef.current?.setPositionAsync(clamped);
+      if (isVideo && mediaUri) {
+        loadThumbnailFromVideo(clamped);
+      }
+    },
+    [durationMs, isVideo, mediaUri, loadThumbnailFromVideo]
+  );
+
+  const stepSec = (delta: number) => {
+    seekTo(frameTimeMs + delta * 1000);
+  };
+
+  const togglePlayPause = useCallback(async () => {
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      await videoRef.current.pauseAsync();
+    } else {
+      await videoRef.current.playAsync();
+    }
+  }, [isPlaying]);
 
   const handleBoxAdd = useCallback(
     async (box: { x: number; y: number; width: number; height: number }) => {
@@ -104,12 +174,12 @@ export default function SelectFrame() {
   );
 
   const saveListing = useCallback(() => {
-    if (!videoUri || !thumbnailUri || pendingItems.length === 0) {
+    if (!mediaUri || !thumbnailUri || pendingItems.length === 0) {
       Alert.alert('Add items', 'Draw at least one box on the frame to list an item.');
       return;
     }
     const listingId = addListing({
-      videoUri,
+      videoUri: mediaUri,
       thumbnailUri,
       frameTimeMs,
       title: title.trim() || 'My room',
@@ -126,12 +196,12 @@ export default function SelectFrame() {
       });
     });
     router.replace(`/listing/${listingId}`);
-  }, [videoUri, thumbnailUri, frameTimeMs, title, pendingItems, addListing, addItem, router]);
+  }, [mediaUri, thumbnailUri, frameTimeMs, title, pendingItems, addListing, addItem, router]);
 
-  if (!videoUri) {
+  if (!mediaUri) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.error}>No video provided.</Text>
+        <Text style={styles.error}>No media provided.</Text>
       </View>
     );
   }
@@ -140,7 +210,7 @@ export default function SelectFrame() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#0f172a" />
-        <Text style={styles.loadingLabel}>Loading frame…</Text>
+        <Text style={styles.loadingLabel}>Loading…</Text>
       </View>
     );
   }
@@ -153,22 +223,66 @@ export default function SelectFrame() {
     );
   }
 
+  const durationSec = Math.floor((durationMs || 0) / 1000);
+  const currentSec = Math.floor(frameTimeMs / 1000);
+  const formatTime = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.timeRow}>
-        <Text style={styles.timeLabel}>Frame time (sec):</Text>
-        <TextInput
-          style={styles.timeInput}
-          value={String(Math.round(frameTimeMs / 1000))}
-          keyboardType="number-pad"
-          onChangeText={(t) => setFrameTimeMs(Math.max(0, parseInt(t, 10) || 0) * 1000)}
-        />
-        <TouchableOpacity style={styles.refreshBtn} onPress={loadThumbnail}>
-          <Text style={styles.refreshBtnText}>Refresh</Text>
-        </TouchableOpacity>
-      </View>
+      {isVideo && (
+        <View style={styles.videoSection}>
+          <Video
+            ref={videoRef}
+            source={{ uri: mediaUri }}
+            style={styles.video}
+            useNativeControls={false}
+            onPlaybackStatusUpdate={onPlaybackStatusUpdate}
+            progressUpdateIntervalMillis={500}
+          />
+          <View style={styles.controls}>
+            <TouchableOpacity style={styles.playPauseBtn} onPress={togglePlayPause} activeOpacity={0.8}>
+              <Text style={styles.playPauseText}>{isPlaying ? 'Pause' : 'Play'}</Text>
+            </TouchableOpacity>
+            <Text style={styles.timeText}>
+              {formatTime(currentSec)} / {formatTime(durationSec)}
+            </Text>
+            <View style={styles.stepRow}>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => stepSec(-1)}>
+                <Text style={styles.stepBtnText}>−1s</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => stepSec(1)}>
+                <Text style={styles.stepBtnText}>+1s</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.sliderRow}>
+              <Text style={styles.sliderLabel}>Frame:</Text>
+              <TextInput
+                style={styles.timeInput}
+                value={String(currentSec)}
+                keyboardType="number-pad"
+                onChangeText={(t) => {
+                  const sec = Math.max(0, parseInt(t, 10) || 0);
+                  seekTo(sec * 1000);
+                }}
+              />
+              <Text style={styles.sliderSuffix}>sec</Text>
+            </View>
+            <TouchableOpacity style={styles.refreshBtn} onPress={() => loadThumbnailFromVideo()}>
+              <Text style={styles.refreshBtnText}>Update frame below</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
-      <Text style={styles.hint}>Draw a box around each item you want to list. AI will value it.</Text>
+      {!isVideo && (
+        <Text style={styles.hint}>Draw a box around each item you want to list. AI will value it.</Text>
+      )}
+      {isVideo && (
+        <Text style={styles.hint}>
+          Set the time above, then draw boxes on the frame below. Tap “Update frame below” if the
+          image doesn’t match.
+        </Text>
+      )}
 
       <FrameSelector
         imageUri={thumbnailUri}
@@ -220,19 +334,53 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingLabel: { marginTop: 12, color: '#64748b' },
   error: { color: '#dc2626', fontSize: 16 },
-  timeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  timeLabel: { fontSize: 14, color: '#475569', marginRight: 8 },
+  videoSection: { marginBottom: 16 },
+  video: {
+    width: SCREEN_WIDTH - 32,
+    height: 200,
+    backgroundColor: '#000',
+    borderRadius: 12,
+    alignSelf: 'center',
+  },
+  controls: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  playPauseBtn: {
+    backgroundColor: '#0f172a',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  playPauseText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  timeText: { fontSize: 14, color: '#64748b', textAlign: 'center', marginBottom: 8 },
+  stepRow: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginBottom: 8 },
+  stepBtn: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+  },
+  stepBtnText: { fontSize: 15, fontWeight: '600', color: '#334155' },
+  sliderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  sliderLabel: { fontSize: 14, color: '#475569', marginRight: 8 },
   timeInput: {
     borderWidth: 1,
     borderColor: '#e2e8f0',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    width: 70,
+    paddingVertical: 6,
+    width: 56,
     fontSize: 16,
     backgroundColor: '#fff',
   },
-  refreshBtn: { marginLeft: 12, paddingVertical: 8, paddingHorizontal: 12 },
+  sliderSuffix: { fontSize: 14, color: '#64748b', marginLeft: 4 },
+  refreshBtn: { alignSelf: 'center', paddingVertical: 6 },
   refreshBtnText: { color: '#3b82f6', fontWeight: '600', fontSize: 14 },
   hint: { fontSize: 13, color: '#64748b', marginBottom: 8 },
   section: { marginTop: 20 },
