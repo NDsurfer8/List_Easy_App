@@ -22,6 +22,9 @@ type ListEasyContextValue = ListEasyState & {
     items: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>[]
   ) => string;
   updateListing: (id: string, patch: Partial<RoomListing>) => void;
+  deleteListing: (listingId: string) => void;
+  deleteItem: (itemId: string) => void;
+  updateItem: (itemId: string, patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category'>>) => void;
   addItem: (listingId: string, item: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>) => string;
   addOffer: (offer: Omit<Offer, 'id' | 'createdAt' | 'status'>) => string;
   acceptOffer: (offerId: string, pickupScheduledAt?: string) => void;
@@ -118,6 +121,52 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       const next = {
         ...state,
         listings: state.listings.map((l) => (l.id === id ? { ...l, ...patch } : l)),
+      };
+      persist(next);
+    },
+    [state, persist]
+  );
+
+  const deleteListing = useCallback(
+    (listingId: string) => {
+      const listing = state.listings.find((l) => l.id === listingId);
+      const itemIds = listing ? new Set(listing.items.map((i) => i.id)) : new Set<string>();
+      const next = {
+        ...state,
+        listings: state.listings.filter((l) => l.id !== listingId),
+        offers: state.offers.filter((o) => !itemIds.has(o.itemId)),
+      };
+      persist(next);
+    },
+    [state, persist]
+  );
+
+  const deleteItem = useCallback(
+    (itemId: string) => {
+      const next = {
+        ...state,
+        listings: state.listings.map((l) => ({
+          ...l,
+          items: l.items.filter((i) => i.id !== itemId),
+        })),
+        offers: state.offers.filter((o) => o.itemId !== itemId),
+      };
+      persist(next);
+    },
+    [state, persist]
+  );
+
+  const updateItem = useCallback(
+    (
+      itemId: string,
+      patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category'>>
+    ) => {
+      const next = {
+        ...state,
+        listings: state.listings.map((l) => ({
+          ...l,
+          items: l.items.map((i) => (i.id === itemId ? { ...i, ...patch } : i)),
+        })),
       };
       persist(next);
     },
@@ -240,6 +289,9 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       addListing,
       addListingWithItems,
       updateListing,
+      deleteListing,
+      deleteItem,
+      updateItem,
       addItem,
       addOffer,
       acceptOffer,
@@ -256,6 +308,9 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       addListing,
       addListingWithItems,
       updateListing,
+      deleteListing,
+      deleteItem,
+      updateItem,
       addItem,
       addOffer,
       acceptOffer,

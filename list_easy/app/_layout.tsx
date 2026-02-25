@@ -20,7 +20,9 @@ export default function RootLayout() {
         <Stack.Screen name="upload" options={{ title: 'Upload Room Video' }} />
         <Stack.Screen name="select-frame" options={{ title: 'Select Items' }} />
         <Stack.Screen name="listing/[id]" options={{ title: 'Room Listing' }} />
+        <Stack.Screen name="listing/edit/[id]" options={{ title: 'Edit listing' }} />
         <Stack.Screen name="item/[id]" options={{ title: 'Item' }} />
+        <Stack.Screen name="item/edit/[id]" options={{ title: 'Edit item' }} />
         <Stack.Screen name="offers" options={{ title: 'Offers & Pickups' }} />
         <Stack.Screen name="video/[id]" options={{ title: 'Room video' }} />
       </Stack>

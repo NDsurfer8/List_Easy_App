@@ -72,6 +72,13 @@ export default function ItemScreen() {
           </View>
           <Text style={styles.category}>{item.category}</Text>
         </View>
+        <TouchableOpacity
+          style={styles.editItemBtn}
+          onPress={() => router.push(`/item/edit/${item.id}`)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.editItemBtnText}>Edit item</Text>
+        </TouchableOpacity>
       </View>
 
       {item.status === 'available' && (
@@ -155,6 +162,15 @@ const styles = StyleSheet.create({
   badgeSold: { backgroundColor: '#fef3c7' },
   badgeText: { fontSize: 12, fontWeight: '600', color: '#166534', textTransform: 'capitalize' },
   category: { fontSize: 13, color: '#64748b' },
+  editItemBtn: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  editItemBtnText: { fontSize: 14, fontWeight: '600', color: '#334155' },
   offerSection: { padding: 20, backgroundColor: '#fff', marginTop: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '600', color: '#334155', marginBottom: 12 },
   input: {

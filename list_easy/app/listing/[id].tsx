@@ -1,12 +1,31 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { useListEasy } from '../../context/ListEasyContext';
 
 export default function ListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getListing } = useListEasy();
+  const { getListing, deleteListing } = useListEasy();
   const listing = id ? getListing(id) : undefined;
+
+  const handleDelete = () => {
+    if (!id || !listing) return;
+    Alert.alert(
+      'Delete listing',
+      `Remove "${listing.title}" and all ${listing.items.length} item(s)? This cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            deleteListing(id);
+            router.replace('/');
+          },
+        },
+      ]
+    );
+  };
 
   if (!listing) {
     return (
@@ -40,6 +59,18 @@ export default function ListingScreen() {
         <Text style={styles.meta}>
           {listing.items.length} item{listing.items.length !== 1 ? 's' : ''} · Tap to view & make offers
         </Text>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={() => router.push(`/listing/edit/${id}`)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.editBtnText}>Edit listing</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.85}>
+            <Text style={styles.deleteBtnText}>Delete listing</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       <FlatList
         data={listing.items}
@@ -94,6 +125,23 @@ const styles = StyleSheet.create({
   title: { fontSize: 20, fontWeight: '700', color: '#1e293b', marginTop: 12 },
   location: { fontSize: 14, color: '#64748b', marginTop: 4 },
   meta: { fontSize: 14, color: '#64748b', marginTop: 4 },
+  actions: { flexDirection: 'row', marginTop: 16, gap: 10 },
+  editBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#0f172a',
+    borderRadius: 8,
+  },
+  editBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  deleteBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  deleteBtnText: { color: '#dc2626', fontSize: 14, fontWeight: '600' },
   list: { padding: 16 },
   card: {
     flexDirection: 'row',
