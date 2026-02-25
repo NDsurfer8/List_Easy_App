@@ -16,11 +16,13 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: 'List Easy' }} />
+        <Stack.Screen name="browse" options={{ title: 'Browse by zip code' }} />
         <Stack.Screen name="upload" options={{ title: 'Upload Room Video' }} />
         <Stack.Screen name="select-frame" options={{ title: 'Select Items' }} />
         <Stack.Screen name="listing/[id]" options={{ title: 'Room Listing' }} />
         <Stack.Screen name="item/[id]" options={{ title: 'Item' }} />
         <Stack.Screen name="offers" options={{ title: 'Offers & Pickups' }} />
+        <Stack.Screen name="video/[id]" options={{ title: 'Room video' }} />
       </Stack>
       </ListEasyProvider>
     </GestureHandlerRootView>

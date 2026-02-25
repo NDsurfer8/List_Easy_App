@@ -24,9 +24,21 @@ export default function ListingScreen() {
           style={styles.thumb}
           resizeMode="cover"
         />
+        {listing.isVideo ? (
+          <TouchableOpacity
+            style={styles.playVideoBtn}
+            onPress={() => router.push(`/video/${listing.id}`)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.playVideoBtnText}>▶ Play room video</Text>
+          </TouchableOpacity>
+        ) : null}
         <Text style={styles.title}>{listing.title}</Text>
+        {listing.zipCode ? (
+          <Text style={styles.location}>ZIP {listing.zipCode}</Text>
+        ) : null}
         <Text style={styles.meta}>
-          {listing.items.length} item{listing.items.length !== 1 ? 's' : ''} · Tap to view & get offers
+          {listing.items.length} item{listing.items.length !== 1 ? 's' : ''} · Tap to view & make offers
         </Text>
       </View>
       <FlatList
@@ -70,7 +82,17 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#e2e8f0',
   },
+  playVideoBtn: {
+    marginTop: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: '#0f172a',
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+  },
+  playVideoBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
   title: { fontSize: 20, fontWeight: '700', color: '#1e293b', marginTop: 12 },
+  location: { fontSize: 14, color: '#64748b', marginTop: 4 },
   meta: { fontSize: 14, color: '#64748b', marginTop: 4 },
   list: { padding: 16 },
   card: {

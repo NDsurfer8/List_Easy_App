@@ -50,6 +50,7 @@ export default function SelectFrame() {
   const [pendingBoxes, setPendingBoxes] = useState<SelectionBox[]>([]);
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [title, setTitle] = useState('My room');
+  const [zipCode, setZipCode] = useState('');
 
   const loadThumbnailFromVideo = useCallback(
     async (atTimeMs?: number) => {
@@ -183,6 +184,8 @@ export default function SelectFrame() {
       thumbnailUri,
       frameTimeMs,
       title: title.trim() || 'My room',
+      zipCode: zipCode.trim() ? zipCode.trim().replace(/\D/g, '').slice(0, 5) : undefined,
+      isVideo: isVideo,
       items: [],
     });
     pendingItems.forEach((p) => {
@@ -196,7 +199,7 @@ export default function SelectFrame() {
       });
     });
     router.replace(`/listing/${listingId}`);
-  }, [mediaUri, thumbnailUri, frameTimeMs, title, pendingItems, addListing, addItem, router]);
+  }, [mediaUri, thumbnailUri, frameTimeMs, title, zipCode, pendingItems, addListing, addItem, router]);
 
   if (!mediaUri) {
     return (
@@ -314,6 +317,17 @@ export default function SelectFrame() {
         onChangeText={setTitle}
         placeholder="e.g. Living room"
         placeholderTextColor="#94a3b8"
+      />
+
+      <Text style={styles.titleLabel}>Zip code (for buyers searching by area)</Text>
+      <TextInput
+        style={styles.titleInput}
+        value={zipCode}
+        onChangeText={(t) => setZipCode(t.replace(/\D/g, '').slice(0, 5))}
+        placeholder="e.g. 11201"
+        placeholderTextColor="#94a3b8"
+        keyboardType="number-pad"
+        maxLength={5}
       />
 
       <TouchableOpacity

@@ -33,6 +33,12 @@ export type RoomListing = {
   /** Time in ms used for thumbnail */
   frameTimeMs: number;
   title: string;
+  /** Optional location for display (e.g. "Brooklyn, NY") */
+  location?: string;
+  /** Zip code for search (e.g. "11201") */
+  zipCode?: string;
+  /** True if videoUri is a video (vs image) so we can show Play video */
+  isVideo?: boolean;
   items: ListedItem[];
   createdAt: string;
 };

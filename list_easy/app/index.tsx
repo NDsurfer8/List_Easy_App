@@ -20,6 +20,13 @@ export default function Home() {
         >
           <Text style={styles.uploadBtnText}>Upload room video</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.browseBtn}
+          onPress={() => router.push('/browse')}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.browseBtnText}>Browse by zip code</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -100,6 +107,21 @@ const styles = StyleSheet.create({
   uploadBtnText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  browseBtn: {
+    backgroundColor: 'transparent',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    borderWidth: 2,
+    borderColor: '#64748b',
+    marginTop: 10,
+  },
+  browseBtnText: {
+    color: '#e2e8f0',
+    fontSize: 15,
     fontWeight: '600',
   },
   section: {

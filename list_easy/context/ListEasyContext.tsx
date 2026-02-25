@@ -4,6 +4,11 @@ import type { RoomListing, ListedItem, Offer } from '../lib/types';
 
 const STORAGE_KEY = '@list_easy_data';
 
+function normalizeZip(zip: string): string {
+  const digits = zip.replace(/\D/g, '');
+  return digits.length >= 5 ? digits.slice(0, 5) : digits;
+}
+
 type ListEasyState = {
   listings: RoomListing[];
   offers: Offer[];
@@ -20,6 +25,8 @@ type ListEasyContextValue = ListEasyState & {
   getListing: (id: string) => RoomListing | undefined;
   getItem: (id: string) => ListedItem | undefined;
   getSimilarItems: (category: string, excludeItemId: string) => ListedItem[];
+  getZipCodes: () => string[];
+  getListingsByZipCode: (zipCode: string | null) => RoomListing[];
 };
 
 const defaultState: ListEasyState = { listings: [], offers: [] };
@@ -173,6 +180,25 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
     [state.listings]
   );
 
+  const getZipCodes = useCallback((): string[] => {
+    const set = new Set<string>();
+    state.listings.forEach((l) => {
+      const zip = normalizeZip((l.zipCode ?? '').trim());
+      if (zip) set.add(zip);
+    });
+    return Array.from(set).sort();
+  }, [state.listings]);
+
+  const getListingsByZipCode = useCallback(
+    (zipCode: string | null): RoomListing[] => {
+      if (!zipCode || zipCode.trim() === '') return state.listings;
+      const normalized = normalizeZip(zipCode.trim());
+      if (!normalized) return state.listings;
+      return state.listings.filter((l) => normalizeZip((l.zipCode ?? '').trim()) === normalized);
+    },
+    [state.listings]
+  );
+
   const value = useMemo<ListEasyContextValue>(
     () => ({
       ...state,
@@ -186,6 +212,8 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       getListing,
       getItem,
       getSimilarItems,
+      getZipCodes,
+      getListingsByZipCode,
     }),
     [
       state,
@@ -199,6 +227,8 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       getListing,
       getItem,
       getSimilarItems,
+      getZipCodes,
+      getListingsByZipCode,
     ]
   );
 
