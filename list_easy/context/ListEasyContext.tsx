@@ -16,6 +16,11 @@ type ListEasyState = {
 
 type ListEasyContextValue = ListEasyState & {
   addListing: (listing: Omit<RoomListing, 'id' | 'createdAt'>) => string;
+  /** Add a listing and all its items in one persist (use this when creating a new listing so it saves correctly). */
+  addListingWithItems: (
+    listing: Omit<RoomListing, 'id' | 'createdAt' | 'items'>,
+    items: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>[]
+  ) => string;
   updateListing: (id: string, patch: Partial<RoomListing>) => void;
   addItem: (listingId: string, item: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>) => string;
   addOffer: (offer: Omit<Offer, 'id' | 'createdAt' | 'status'>) => string;
@@ -74,6 +79,36 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       };
       persist(next);
       return id;
+    },
+    [state, persist]
+  );
+
+  const addListingWithItems = useCallback(
+    (
+      listing: Omit<RoomListing, 'id' | 'createdAt' | 'items'>,
+      items: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>[]
+    ): string => {
+      const listingId = `listing_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      const now = new Date().toISOString();
+      const listedItems: ListedItem[] = items.map((item, i) => ({
+        ...item,
+        id: `item_${listingId}_${i}_${Math.random().toString(36).slice(2, 7)}`,
+        listingId,
+        status: 'available' as const,
+        createdAt: now,
+      }));
+      const newListing: RoomListing = {
+        ...listing,
+        id: listingId,
+        createdAt: now,
+        items: listedItems,
+      };
+      const next = {
+        ...state,
+        listings: [...state.listings, newListing],
+      };
+      persist(next);
+      return listingId;
     },
     [state, persist]
   );
@@ -203,6 +238,7 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       addListing,
+      addListingWithItems,
       updateListing,
       addItem,
       addOffer,
@@ -218,6 +254,7 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
     [
       state,
       addListing,
+      addListingWithItems,
       updateListing,
       addItem,
       addOffer,

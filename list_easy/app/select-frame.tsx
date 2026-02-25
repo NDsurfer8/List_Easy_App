@@ -34,7 +34,7 @@ type PendingItem = {
 export default function SelectFrame() {
   const { uri, mediaType } = useLocalSearchParams<{ uri: string; mediaType: 'image' | 'video' }>();
   const router = useRouter();
-  const { addListing, addItem } = useListEasy();
+  const { addListingWithItems } = useListEasy();
   const videoRef = useRef<Video>(null);
 
   const isVideo = mediaType === 'video';
@@ -179,27 +179,26 @@ export default function SelectFrame() {
       Alert.alert('Add items', 'Draw at least one box on the frame to list an item.');
       return;
     }
-    const listingId = addListing({
-      videoUri: mediaUri,
-      thumbnailUri,
-      frameTimeMs,
-      title: title.trim() || 'My room',
-      zipCode: zipCode.trim() ? zipCode.trim().replace(/\D/g, '').slice(0, 5) : undefined,
-      isVideo: isVideo,
-      items: [],
-    });
-    pendingItems.forEach((p) => {
-      addItem(listingId, {
+    const listingId = addListingWithItems(
+      {
+        videoUri: mediaUri,
+        thumbnailUri,
+        frameTimeMs,
+        title: title.trim() || 'My room',
+        zipCode: zipCode.trim() ? zipCode.trim().replace(/\D/g, '').slice(0, 5) : undefined,
+        isVideo: isVideo,
+      },
+      pendingItems.map((p) => ({
         imageUri: thumbnailUri,
         box: p.box,
         label: p.label,
         description: p.description,
         estimatedValue: p.estimatedValue,
         category: p.category,
-      });
-    });
+      }))
+    );
     router.replace(`/listing/${listingId}`);
-  }, [mediaUri, thumbnailUri, frameTimeMs, title, zipCode, pendingItems, addListing, addItem, router]);
+  }, [mediaUri, thumbnailUri, frameTimeMs, title, zipCode, pendingItems, addListingWithItems, router]);
 
   if (!mediaUri) {
     return (
