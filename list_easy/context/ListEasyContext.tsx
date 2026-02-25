@@ -37,7 +37,7 @@ type ListEasyContextValue = ListEasyState & {
   updateListing: (id: string, patch: Partial<RoomListing>) => void;
   deleteListing: (listingId: string) => void;
   deleteItem: (itemId: string) => void;
-  updateItem: (itemId: string, patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category'>>) => void;
+  updateItem: (itemId: string, patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category' | 'productImageUri'>>) => void;
   addItem: (listingId: string, item: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>) => string;
   addOffer: (offer: Omit<Offer, 'id' | 'createdAt' | 'status'>) => string;
   acceptOffer: (offerId: string, pickupScheduledAt?: string) => void;
@@ -218,7 +218,7 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
   const updateItem = useCallback(
     (
       itemId: string,
-      patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category'>>
+      patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category' | 'productImageUri'>>
     ) => {
       if (isFirebaseConfigured()) {
         const listing = state.listings.find((l) => l.items.some((i) => i.id === itemId));

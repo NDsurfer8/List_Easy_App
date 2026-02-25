@@ -11,6 +11,10 @@ export type ListedItem = {
   listingId: string;
   /** Crop or frame image URI used for AI */
   imageUri: string;
+  /** Cropped image of just the item (for detail page, white-background display) */
+  displayImageUri?: string;
+  /** AI-generated product-style image on white background (optional) */
+  productImageUri?: string;
   /** Bounding box on the frame (for overlay) */
   box: SelectionBox;
   /** AI-generated label */

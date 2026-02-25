@@ -15,6 +15,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Video } from 'expo-av';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import type { AVPlaybackStatus } from 'expo-av';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { useListEasy } from '../context/ListEasyContext';
 import { FrameSelector } from '../components/FrameSelector';
 import { getAIValuation } from '../lib/ai';
@@ -27,6 +28,7 @@ const { colors, spacing, radius } = theme;
 type PendingItem = {
   id: string;
   box: SelectionBox;
+  displayImageUri?: string;
   label: string;
   description: string;
   estimatedValue: number;
@@ -139,12 +141,22 @@ export default function SelectFrame() {
       const id = `box_${Date.now()}`;
       setPendingBoxes((prev) => [...prev, { id, ...box }]);
       setLoadingAi(true);
+      let displayImageUri: string | undefined;
       try {
-        const result = await getAIValuation(
-          thumbnailUri,
-          { x: box.x, y: box.y, width: box.width, height: box.height },
-          { width: thumbSize.width, height: thumbSize.height }
-        );
+        const originX = Math.round((box.x / 100) * thumbSize.width);
+        const originY = Math.round((box.y / 100) * thumbSize.height);
+        const width = Math.round((box.width / 100) * thumbSize.width);
+        const height = Math.round((box.height / 100) * thumbSize.height);
+        if (width >= 10 && height >= 10) {
+          const cropResult = await ImageManipulator.manipulateAsync(
+            thumbnailUri,
+            [{ crop: { originX, originY, width, height } }],
+            { format: ImageManipulator.SaveFormat.JPEG }
+          );
+          displayImageUri = cropResult.uri;
+        }
+        const imageForAi = displayImageUri ?? thumbnailUri;
+        const result = await getAIValuation(imageForAi);
         setPendingItems((prev) => {
           if (prev.length === 0) setTitle(result.label);
           return [
@@ -152,6 +164,7 @@ export default function SelectFrame() {
             {
               id,
               box: { id, ...box },
+              displayImageUri,
               label: result.label,
               description: result.description,
               estimatedValue: result.estimatedValue,
@@ -167,6 +180,7 @@ export default function SelectFrame() {
             {
               id,
               box: { id, ...box },
+              displayImageUri,
               label: 'Unknown item',
               description: 'Could not get value.',
               estimatedValue: 0,
@@ -199,6 +213,7 @@ export default function SelectFrame() {
         pendingItems.map((p) => ({
           imageUri: thumbnailUri,
           box: p.box,
+          displayImageUri: p.displayImageUri,
           label: p.label,
           description: p.description,
           estimatedValue: p.estimatedValue,
