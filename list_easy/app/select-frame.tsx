@@ -145,29 +145,35 @@ export default function SelectFrame() {
           { x: box.x, y: box.y, width: box.width, height: box.height },
           { width: thumbSize.width, height: thumbSize.height }
         );
-        setPendingItems((prev) => [
-          ...prev,
-          {
-            id,
-            box: { id, ...box },
-            label: result.label,
-            description: result.description,
-            estimatedValue: result.estimatedValue,
-            category: result.category,
-          },
-        ]);
+        setPendingItems((prev) => {
+          if (prev.length === 0) setTitle(result.label);
+          return [
+            ...prev,
+            {
+              id,
+              box: { id, ...box },
+              label: result.label,
+              description: result.description,
+              estimatedValue: result.estimatedValue,
+              category: result.category,
+            },
+          ];
+        });
       } catch (_) {
-        setPendingItems((prev) => [
-          ...prev,
-          {
-            id,
-            box: { id, ...box },
-            label: 'Unknown item',
-            description: 'Could not get value.',
-            estimatedValue: 0,
-            category: 'Furniture',
-          },
-        ]);
+        setPendingItems((prev) => {
+          if (prev.length === 0) setTitle('Unknown item');
+          return [
+            ...prev,
+            {
+              id,
+              box: { id, ...box },
+              label: 'Unknown item',
+              description: 'Could not get value.',
+              estimatedValue: 0,
+              category: 'Furniture',
+            },
+          ];
+        });
       } finally {
         setLoadingAi(false);
       }
