@@ -41,6 +41,10 @@ export type RoomListing = {
   isVideo?: boolean;
   items: ListedItem[];
   createdAt: string;
+  /** Firebase Storage URL for thumbnail (when synced to Firestore) */
+  thumbnailUrl?: string;
+  /** Firebase Storage URL for video (when synced to Firestore) */
+  videoUrl?: string;
 };
 
 export type Offer = {

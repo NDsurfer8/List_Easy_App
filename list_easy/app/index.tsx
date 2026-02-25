@@ -56,7 +56,7 @@ export default function Home() {
                 activeOpacity={0.92}
               >
                 <Image
-                  source={{ uri: item.thumbnailUri }}
+                  source={{ uri: item.thumbnailUrl ?? item.thumbnailUri }}
                   style={styles.cardImage}
                   resizeMode="cover"
                 />

@@ -119,7 +119,7 @@ export default function BrowseScreen() {
               activeOpacity={0.92}
             >
               <Image
-                source={{ uri: item.thumbnailUri }}
+                source={{ uri: item.thumbnailUrl ?? item.thumbnailUri }}
                 style={styles.cardThumb}
                 resizeMode="cover"
               />

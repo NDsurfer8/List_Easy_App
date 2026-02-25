@@ -27,24 +27,44 @@ App where you upload a video of a room, select items on a frame (draw boxes), ge
 
 3. Open in [Expo Go](https://expo.dev/go), iOS simulator, or Android emulator.
 
-## Optional: real AI valuations
+## Environment (optional)
 
-By default the app uses **mock** AI (random labels and values). To use OpenAI for real descriptions and valuations:
+Copy `.env.example` to `.env` in `list_easy/` and fill in any values you need. Restart Expo after changing `.env`.
 
-1. Create a `.env` in `list_easy/` with:
+| Variable | Purpose |
+|----------|---------|
+| `EXPO_PUBLIC_OPENAI_API_KEY` | Use OpenAI Vision for real item labels and valuations. Omit for mock AI. |
+| `EXPO_PUBLIC_FIREBASE_API_KEY` | Required for Firebase (with project ID and storage bucket). |
+| `EXPO_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID. |
+| `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase Storage bucket (e.g. `yourapp.appspot.com`). |
+| `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` | Optional; set if using Firebase Auth. |
+| `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Optional; for FCM. |
+| `EXPO_PUBLIC_FIREBASE_APP_ID` | Optional; from Firebase Console. |
 
-   ```
-   EXPO_PUBLIC_OPENAI_API_KEY=sk-your-key-here
-   ```
+- **OpenAI:** When the key is set, the app sends frame images (as base64) to the Vision API when you draw a box; it falls back to mock if the request fails.
+- **Firebase:** When API key, project ID, and storage bucket are set, listings and offers sync to Firestore and listing thumbnails are uploaded to Storage. Otherwise the app uses local AsyncStorage only.
 
-2. Restart Expo. The app will call OpenAI Vision when you draw a box on a frame (and may still fall back to mock if the request fails).
+### Firestore security rules
+
+If you use Firestore but nothing appears or you see permission errors, set Firestore rules so the app can read/write. In [Firebase Console](https://console.firebase.google.com) → your project → **Firestore Database** → **Rules**, use for development:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /listings/{id} { allow read, write: if true; }
+    match /offers/{id} { allow read, write: if true; }
+  }
+}
+```
+
+For production you should restrict `if true` to authenticated users (e.g. `if request.auth != null`).
 
 ## Project structure
 
 - `app/` – Screens: Home, Upload, Select-frame, Listing detail, Item detail, Offers.
-- `context/ListEasyContext.tsx` – Global state (listings, offers) with AsyncStorage persistence.
+- `context/ListEasyContext.tsx` – Global state (listings, offers); Firestore when configured, else AsyncStorage.
 - `lib/types.ts` – Types for listings, items, offers.
-- `lib/ai.ts` – AI valuation (mock + OpenAI-ready).
+- `lib/ai.ts` – AI valuation (mock + OpenAI Vision with base64 images).
+- `lib/firebase.ts` – Firestore + Storage helpers; thumbnail upload.
 - `components/FrameSelector.tsx` – Draw selection boxes on a thumbnail image.
-
-Data is stored locally on the device. For multi-user or cloud sync you’d add a backend and auth.

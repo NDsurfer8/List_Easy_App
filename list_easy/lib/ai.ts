@@ -3,6 +3,8 @@
  * Set EXPO_PUBLIC_OPENAI_API_KEY in .env to use real API; otherwise returns mock values.
  */
 
+import { readFileAsBase64 } from './firebase';
+
 export type ValuationResult = {
   label: string;
   description: string;
@@ -48,8 +50,15 @@ export async function getAIValuation(
   }
 
   try {
-    // For Expo, we'd need to send base64 or a URL. If imageUri is local file://, we need to read and encode.
-    // Simplified: use mock if we can't easily send (Expo local URIs aren't sendable to OpenAI directly without conversion)
+    let imageUrl = imageUri;
+    if (imageUri.startsWith('file://') || imageUri.startsWith('file:')) {
+      const base64 = await readFileAsBase64(imageUri);
+      if (!base64) {
+        console.warn('Could not read image as base64, using mock');
+        return getMockValuation(imageUri, box);
+      }
+      imageUrl = `data:image/jpeg;base64,${base64}`;
+    }
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -71,7 +80,7 @@ Estimate resale value for used furniture in good condition.`,
               },
               {
                 type: 'image_url',
-                image_url: { url: imageUri.startsWith('data:') ? imageUri : `file://${imageUri}` },
+                image_url: { url: imageUrl },
               },
             ],
           },

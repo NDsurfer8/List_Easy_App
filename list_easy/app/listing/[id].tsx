@@ -42,7 +42,7 @@ export default function ListingScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: listing.thumbnailUri }}
+          source={{ uri: listing.thumbnailUrl ?? listing.thumbnailUri }}
           style={styles.thumb}
           resizeMode="cover"
         />

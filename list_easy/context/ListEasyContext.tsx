@@ -1,6 +1,19 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { RoomListing, ListedItem, Offer } from '../lib/types';
+import {
+  isFirebaseConfigured,
+  subscribeListings,
+  subscribeOffers,
+  firestoreSetListing,
+  firestoreUpdateListing,
+  firestoreDeleteListing,
+  firestoreUpdateListingItems,
+  firestoreSetOffer,
+  firestoreUpdateOffer,
+  firestoreDeleteOffer,
+  uploadListingThumbnail,
+} from '../lib/firebase';
 
 const STORAGE_KEY = '@list_easy_data';
 
@@ -20,7 +33,7 @@ type ListEasyContextValue = ListEasyState & {
   addListingWithItems: (
     listing: Omit<RoomListing, 'id' | 'createdAt' | 'items'>,
     items: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>[]
-  ) => string;
+  ) => Promise<string>;
   updateListing: (id: string, patch: Partial<RoomListing>) => void;
   deleteListing: (listingId: string) => void;
   deleteItem: (itemId: string) => void;
@@ -46,6 +59,19 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (isFirebaseConfigured()) {
+      const unsubListings = subscribeListings((listings) => {
+        setState((prev) => ({ ...prev, listings }));
+      });
+      const unsubOffers = subscribeOffers((offers) => {
+        setState((prev) => ({ ...prev, offers }));
+      });
+      setLoaded(true);
+      return () => {
+        unsubListings();
+        unsubOffers();
+      };
+    }
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (raw) {
@@ -64,7 +90,9 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
 
   const persist = useCallback((next: ListEasyState) => {
     setState(next);
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+    if (!isFirebaseConfigured()) {
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
+    }
   }, []);
 
   const addListing = useCallback(
@@ -87,10 +115,10 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addListingWithItems = useCallback(
-    (
+    async (
       listing: Omit<RoomListing, 'id' | 'createdAt' | 'items'>,
       items: Omit<ListedItem, 'id' | 'listingId' | 'createdAt' | 'status'>[]
-    ): string => {
+    ): Promise<string> => {
       const listingId = `listing_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
       const now = new Date().toISOString();
       const listedItems: ListedItem[] = items.map((item, i) => ({
@@ -106,10 +134,19 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
         createdAt: now,
         items: listedItems,
       };
-      const next = {
-        ...state,
-        listings: [...state.listings, newListing],
-      };
+      if (isFirebaseConfigured()) {
+        try {
+          const thumbnailUrl = await uploadListingThumbnail(listingId, listing.thumbnailUri);
+          if (thumbnailUrl) newListing.thumbnailUrl = thumbnailUrl;
+          await firestoreSetListing(newListing);
+          return listingId;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn('[Firestore] Save listing failed:', msg);
+          throw e;
+        }
+      }
+      const next = { ...state, listings: [...state.listings, newListing] };
       persist(next);
       return listingId;
     },
@@ -118,6 +155,10 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
 
   const updateListing = useCallback(
     (id: string, patch: Partial<RoomListing>) => {
+      if (isFirebaseConfigured()) {
+        firestoreUpdateListing(id, patch).catch((e) => console.warn('[Firestore] updateListing:', e?.message ?? e));
+        return;
+      }
       const next = {
         ...state,
         listings: state.listings.map((l) => (l.id === id ? { ...l, ...patch } : l)),
@@ -129,6 +170,15 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
 
   const deleteListing = useCallback(
     (listingId: string) => {
+      if (isFirebaseConfigured()) {
+        const listing = state.listings.find((l) => l.id === listingId);
+        const itemIds = listing ? new Set(listing.items.map((i) => i.id)) : new Set<string>();
+        firestoreDeleteListing(listingId).catch((e) => console.warn('[Firestore] deleteListing:', e?.message ?? e));
+        state.offers.forEach((o) => {
+          if (itemIds.has(o.itemId)) firestoreDeleteOffer(o.id).catch((e) => console.warn('[Firestore] deleteOffer:', e?.message ?? e));
+        });
+        return;
+      }
       const listing = state.listings.find((l) => l.id === listingId);
       const itemIds = listing ? new Set(listing.items.map((i) => i.id)) : new Set<string>();
       const next = {
@@ -143,6 +193,15 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
 
   const deleteItem = useCallback(
     (itemId: string) => {
+      if (isFirebaseConfigured()) {
+        const listing = state.listings.find((l) => l.items.some((i) => i.id === itemId));
+        if (listing) {
+          const newItems = listing.items.filter((i) => i.id !== itemId);
+          firestoreUpdateListingItems(listing.id, newItems).catch((e) => console.warn('[Firestore] updateListingItems:', e?.message ?? e));
+        }
+        state.offers.filter((o) => o.itemId === itemId).forEach((o) => firestoreDeleteOffer(o.id).catch((e) => console.warn('[Firestore] deleteOffer:', e?.message ?? e)));
+        return;
+      }
       const next = {
         ...state,
         listings: state.listings.map((l) => ({
@@ -161,6 +220,14 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       itemId: string,
       patch: Partial<Pick<ListedItem, 'label' | 'description' | 'estimatedValue' | 'category'>>
     ) => {
+      if (isFirebaseConfigured()) {
+        const listing = state.listings.find((l) => l.items.some((i) => i.id === itemId));
+        if (listing) {
+          const newItems = listing.items.map((i) => (i.id === itemId ? { ...i, ...patch } : i));
+          firestoreUpdateListingItems(listing.id, newItems).catch((e) => console.warn('[Firestore] updateListingItems:', e?.message ?? e));
+        }
+        return;
+      }
       const next = {
         ...state,
         listings: state.listings.map((l) => ({
@@ -201,6 +268,10 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
       const id = `offer_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
       const now = new Date().toISOString();
       const newOffer: Offer = { ...offer, id, status: 'pending', createdAt: now };
+      if (isFirebaseConfigured()) {
+        firestoreSetOffer(newOffer).catch((e) => console.warn('[Firestore] setOffer:', e?.message ?? e));
+        return id;
+      }
       const next = { ...state, offers: [...state.offers, newOffer] };
       persist(next);
       return id;
@@ -212,6 +283,20 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
     (offerId: string, pickupScheduledAt?: string) => {
       const offer = state.offers.find((o) => o.id === offerId);
       if (!offer) return;
+      if (isFirebaseConfigured()) {
+        firestoreUpdateOffer(offerId, { status: 'accepted', pickupScheduledAt }).catch((e) => console.warn('[Firestore] updateOffer:', e?.message ?? e));
+        state.offers
+          .filter((o) => o.itemId === offer.itemId && o.id !== offerId)
+          .forEach((o) => firestoreUpdateOffer(o.id, { status: 'declined' }).catch((e) => console.warn('[Firestore] updateOffer:', e?.message ?? e)));
+        const listing = state.listings.find((l) => l.items.some((i) => i.id === offer.itemId));
+        if (listing) {
+          const newItems = listing.items.map((i) =>
+            i.id === offer.itemId ? { ...i, status: 'pending' as const } : i
+          );
+          firestoreUpdateListingItems(listing.id, newItems).catch((e) => console.warn('[Firestore] updateListingItems:', e?.message ?? e));
+        }
+        return;
+      }
       const nextOffers = state.offers.map((o) =>
         o.id === offerId
           ? { ...o, status: 'accepted' as const, pickupScheduledAt }
@@ -232,6 +317,10 @@ export function ListEasyProvider({ children }: { children: React.ReactNode }) {
 
   const declineOffer = useCallback(
     (offerId: string) => {
+      if (isFirebaseConfigured()) {
+        firestoreUpdateOffer(offerId, { status: 'declined' }).catch((e) => console.warn('[Firestore] updateOffer:', e?.message ?? e));
+        return;
+      }
       const next: ListEasyState = {
         ...state,
         offers: state.offers.map((o) =>

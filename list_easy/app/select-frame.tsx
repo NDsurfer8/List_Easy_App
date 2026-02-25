@@ -176,30 +176,35 @@ export default function SelectFrame() {
     [thumbnailUri]
   );
 
-  const saveListing = useCallback(() => {
+  const saveListing = useCallback(async () => {
     if (!mediaUri || !thumbnailUri || pendingItems.length === 0) {
       Alert.alert('Add items', 'Draw at least one box on the frame to list an item.');
       return;
     }
-    const listingId = addListingWithItems(
-      {
-        videoUri: mediaUri,
-        thumbnailUri,
-        frameTimeMs,
-        title: title.trim() || 'My room',
-        zipCode: zipCode.trim() ? zipCode.trim().replace(/\D/g, '').slice(0, 5) : undefined,
-        isVideo: isVideo,
-      },
-      pendingItems.map((p) => ({
-        imageUri: thumbnailUri,
-        box: p.box,
-        label: p.label,
-        description: p.description,
-        estimatedValue: p.estimatedValue,
-        category: p.category,
-      }))
-    );
-    router.replace(`/listing/${listingId}`);
+    try {
+      const listingId = await addListingWithItems(
+        {
+          videoUri: mediaUri,
+          thumbnailUri,
+          frameTimeMs,
+          title: title.trim() || 'My room',
+          zipCode: zipCode.trim() ? zipCode.trim().replace(/\D/g, '').slice(0, 5) : undefined,
+          isVideo: isVideo,
+        },
+        pendingItems.map((p) => ({
+          imageUri: thumbnailUri,
+          box: p.box,
+          label: p.label,
+          description: p.description,
+          estimatedValue: p.estimatedValue,
+          category: p.category,
+        }))
+      );
+      router.replace(`/listing/${listingId}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      Alert.alert('Save failed', msg);
+    }
   }, [mediaUri, thumbnailUri, frameTimeMs, title, zipCode, pendingItems, addListingWithItems, router]);
 
   if (!mediaUri) {
