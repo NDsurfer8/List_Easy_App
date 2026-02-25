@@ -1,6 +1,9 @@
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useListEasy } from '../context/ListEasyContext';
+import { theme } from '../lib/theme';
+
+const { colors, spacing, radius, typography, shadow } = theme;
 
 export default function OffersScreen() {
   const router = useRouter();
@@ -11,7 +14,7 @@ export default function OffersScreen() {
 
   const handleAccept = (offerId: string) => {
     acceptOffer(offerId);
-    Alert.alert('Offer accepted', 'You can schedule pickup in the listing.');
+    Alert.alert('Offer accepted', 'You can schedule pickup with the buyer.');
   };
 
   const handleDecline = (offerId: string) => {
@@ -49,14 +52,14 @@ export default function OffersScreen() {
             <TouchableOpacity
               style={styles.acceptBtn}
               onPress={() => handleAccept(offer.id)}
-              activeOpacity={0.85}
+              activeOpacity={0.88}
             >
               <Text style={styles.acceptBtnText}>Accept</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.declineBtn}
               onPress={() => handleDecline(offer.id)}
-              activeOpacity={0.85}
+              activeOpacity={0.88}
             >
               <Text style={styles.declineBtnText}>Decline</Text>
             </TouchableOpacity>
@@ -79,7 +82,7 @@ export default function OffersScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Pending offers</Text>
+        <Text style={styles.sectionTitle}>Pending</Text>
         {pendingOffers.length === 0 ? (
           <Text style={styles.empty}>No pending offers.</Text>
         ) : (
@@ -89,7 +92,7 @@ export default function OffersScreen() {
         )}
       </View>
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Accepted / Pickups</Text>
+        <Text style={styles.sectionTitle}>Accepted & pickups</Text>
         {acceptedOffers.length === 0 ? (
           <Text style={styles.empty}>No accepted offers yet.</Text>
         ) : (
@@ -103,46 +106,52 @@ export default function OffersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
-  content: { padding: 20, paddingBottom: 40 },
-  section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#334155', marginBottom: 12 },
-  empty: { fontSize: 15, color: '#64748b', paddingVertical: 8 },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.xl, paddingBottom: 40 },
+  section: { marginBottom: spacing.xxl },
+  sectionTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.md },
+  empty: { ...typography.bodySmall, color: colors.textMuted, paddingVertical: spacing.sm },
   card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    ...shadow.sm,
   },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemName: { fontSize: 16, fontWeight: '600', color: '#1e293b' },
-  amount: { fontSize: 18, fontWeight: '700', color: '#22c55e' },
-  message: { fontSize: 14, color: '#64748b', fontStyle: 'italic', marginTop: 6 },
-  meta: { marginTop: 6 },
-  metaText: { fontSize: 13, color: '#94a3b8' },
-  actions: { flexDirection: 'row', marginTop: 12, gap: 10 },
+  itemName: { ...typography.h3, color: colors.text, fontSize: 16 },
+  amount: { fontSize: 18, fontWeight: '800', color: colors.success },
+  message: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+    marginTop: spacing.sm,
+  },
+  meta: { marginTop: spacing.sm },
+  metaText: { ...typography.caption, color: colors.textMuted },
+  actions: { flexDirection: 'row', marginTop: spacing.md, gap: spacing.md },
   acceptBtn: {
     flex: 1,
-    backgroundColor: '#22c55e',
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: colors.success,
+    paddingVertical: 12,
+    borderRadius: radius.sm,
     alignItems: 'center',
   },
-  acceptBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  acceptBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   declineBtn: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: colors.surfaceMuted,
+    paddingVertical: 12,
+    borderRadius: radius.sm,
     alignItems: 'center',
   },
-  declineBtnText: { color: '#64748b', fontWeight: '600', fontSize: 14 },
-  pickupRow: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#e2e8f0' },
-  pickupLabel: { fontSize: 12, color: '#64748b', marginBottom: 2 },
-  pickupText: { fontSize: 14, color: '#1e293b' },
+  declineBtnText: { color: colors.textSecondary, fontWeight: '600', fontSize: 14 },
+  pickupRow: {
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  pickupLabel: { ...typography.label, color: colors.textMuted, marginBottom: 2 },
+  pickupText: { ...typography.bodySmall, color: colors.text },
 });

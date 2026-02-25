@@ -2,17 +2,19 @@ import { Stack } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ListEasyProvider } from '../context/ListEasyContext';
 import { StatusBar } from 'expo-status-bar';
+import { theme } from '../lib/theme';
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ListEasyProvider>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: '#0f172a' },
-          headerTintColor: '#f8fafc',
-          headerTitleStyle: { fontWeight: '600', fontSize: 18 },
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.textOnPrimary,
+          headerTitleStyle: { fontWeight: '700', fontSize: 17 },
+          headerShadowVisible: false,
         }}
       >
         <Stack.Screen name="index" options={{ title: 'List Easy' }} />

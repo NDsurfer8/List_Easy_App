@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { theme } from '../lib/theme';
 
-type MediaType = 'image' | 'video';
+const { colors, spacing, radius, typography, shadow } = theme;
 
 export default function Upload() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function Upload() {
       }
       const asset = result.assets[0];
       const uri = asset.uri;
-      const type: MediaType = asset.type === 'video' ? 'video' : 'image';
+      const type = asset.type === 'video' ? 'video' : 'image';
       router.replace({
         pathname: '/select-frame',
         params: { uri, mediaType: type },
@@ -42,30 +43,37 @@ export default function Upload() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.instruction}>
-        Choose a video or photo of the room. For video, you can scrub second-by-second or play and
-        pause to pick a frame. For a photo, you’ll draw boxes on it directly.
-      </Text>
-      <TouchableOpacity
-        style={[styles.button, loading && styles.buttonDisabled]}
-        onPress={() => pickMedia(['videos'])}
-        disabled={loading}
-        activeOpacity={0.85}
-      >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Pick video</Text>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.button, styles.buttonSecondary, loading && styles.buttonDisabled]}
-        onPress={() => pickMedia(['images'])}
-        disabled={loading}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.buttonTextSecondary}>Pick photo</Text>
-      </TouchableOpacity>
+      <View style={styles.card}>
+        <Text style={styles.title}>Add a room to list</Text>
+        <Text style={styles.instruction}>
+          Choose a video or photo of the room. For video, scrub or play to pick a frame. For a photo,
+          you’ll draw boxes on it. We’ll suggest values for each item.
+        </Text>
+        <TouchableOpacity
+          style={[styles.primaryBtn, loading && styles.disabled]}
+          onPress={() => pickMedia(['videos'])}
+          disabled={loading}
+          activeOpacity={0.88}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.primaryBtnEmoji}>🎬</Text>
+              <Text style={styles.primaryBtnText}>Pick video</Text>
+            </>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.secondaryBtn, loading && styles.disabled]}
+          onPress={() => pickMedia(['images'])}
+          disabled={loading}
+          activeOpacity={0.88}
+        >
+          <Text style={styles.secondaryBtnEmoji}>📷</Text>
+          <Text style={styles.secondaryBtnText}>Pick photo</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -73,38 +81,58 @@ export default function Upload() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
-    padding: 24,
+    backgroundColor: colors.background,
+    padding: spacing.xl,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.xxl,
+    ...shadow.sm,
+  },
+  title: {
+    ...typography.h2,
+    color: colors.text,
+    marginBottom: spacing.md,
   },
   instruction: {
-    fontSize: 16,
-    color: '#475569',
+    ...typography.body,
+    color: colors.textSecondary,
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: spacing.xxl,
   },
-  button: {
-    backgroundColor: '#0f172a',
-    paddingVertical: 16,
-    borderRadius: 12,
+  primaryBtn: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+    gap: spacing.sm,
   },
-  buttonSecondary: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#0f172a',
+  primaryBtnEmoji: { fontSize: 18 },
+  primaryBtnText: {
+    color: colors.textOnPrimary,
+    fontSize: 16,
+    fontWeight: '700',
   },
-  buttonDisabled: {
-    opacity: 0.7,
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surfaceMuted,
+    paddingVertical: 16,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.sm,
   },
-  buttonText: {
-    color: '#fff',
+  secondaryBtnEmoji: { fontSize: 18 },
+  secondaryBtnText: {
+    color: colors.text,
     fontSize: 16,
     fontWeight: '600',
   },
-  buttonTextSecondary: {
-    color: '#0f172a',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  disabled: { opacity: 0.6 },
 });

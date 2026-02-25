@@ -13,6 +13,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ListedItem } from '../../lib/types';
 import { useListEasy } from '../../context/ListEasyContext';
 import { getSimilarCategory } from '../../lib/ai';
+import { theme } from '../../lib/theme';
+
+const { colors, spacing, radius, typography, shadow } = theme;
 
 export default function ItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,7 +65,7 @@ export default function ItemScreen() {
       <View style={styles.main}>
         <Text style={styles.label}>{item.label}</Text>
         <View style={styles.valueRow}>
-          <Text style={styles.valueLabel}>AI estimated value</Text>
+          <Text style={styles.valueLabel}>Est. value</Text>
           <Text style={styles.value}>${item.estimatedValue}</Text>
         </View>
         <Text style={styles.description}>{item.description}</Text>
@@ -75,7 +78,7 @@ export default function ItemScreen() {
         <TouchableOpacity
           style={styles.editItemBtn}
           onPress={() => router.push(`/item/edit/${item.id}`)}
-          activeOpacity={0.85}
+          activeOpacity={0.88}
         >
           <Text style={styles.editItemBtnText}>Edit item</Text>
         </TouchableOpacity>
@@ -89,7 +92,7 @@ export default function ItemScreen() {
             value={offerAmount}
             onChangeText={setOfferAmount}
             placeholder="Your offer ($)"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={colors.textMuted}
             keyboardType="number-pad"
           />
           <TextInput
@@ -97,14 +100,14 @@ export default function ItemScreen() {
             value={offerMessage}
             onChangeText={setOfferMessage}
             placeholder="Message (optional)"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={colors.textMuted}
             multiline
           />
           <TouchableOpacity
-            style={styles.offerBtn}
+            style={[styles.offerBtn, sending && styles.disabled]}
             onPress={handleMakeOffer}
             disabled={sending}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
           >
             <Text style={styles.offerBtnText}>Submit offer</Text>
           </TouchableOpacity>
@@ -114,7 +117,7 @@ export default function ItemScreen() {
       <View style={styles.similarSection}>
         <Text style={styles.sectionTitle}>Similar items</Text>
         <Text style={styles.similarHint}>
-          Other things in this category: {similarLabels.slice(0, 5).join(', ')}
+          In this category: {similarLabels.slice(0, 5).join(', ')}
         </Text>
         {similar.length > 0 && (
           <View style={styles.similarList}>
@@ -123,7 +126,7 @@ export default function ItemScreen() {
                 key={s.id}
                 style={styles.similarCard}
                 onPress={() => router.push(`/item/${s.id}`)}
-                activeOpacity={0.9}
+                activeOpacity={0.92}
               >
                 <Text style={styles.similarLabel}>{s.label}</Text>
                 <Text style={styles.similarValue}>${s.estimatedValue}</Text>
@@ -137,75 +140,90 @@ export default function ItemScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: 40 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { color: '#dc2626', fontSize: 16 },
+  error: { ...typography.body, color: colors.error },
   image: {
     width: '100%',
-    height: 220,
-    backgroundColor: '#e2e8f0',
+    height: 240,
+    backgroundColor: colors.surfaceMuted,
   },
-  main: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e2e8f0' },
-  label: { fontSize: 22, fontWeight: '700', color: '#1e293b' },
-  valueRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: 8 },
-  valueLabel: { fontSize: 14, color: '#64748b', marginRight: 8 },
-  value: { fontSize: 24, fontWeight: '700', color: '#22c55e' },
-  description: { fontSize: 15, color: '#475569', lineHeight: 22, marginTop: 12 },
-  badgeWrap: { flexDirection: 'row', alignItems: 'center', marginTop: 12, gap: 10 },
+  main: {
+    padding: spacing.xl,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  label: { ...typography.h1, color: colors.text, fontSize: 22 },
+  valueRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: spacing.sm },
+  valueLabel: { ...typography.bodySmall, color: colors.textMuted, marginRight: spacing.sm },
+  value: { fontSize: 26, fontWeight: '800', color: colors.success },
+  description: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+  },
+  badgeWrap: { flexDirection: 'row', alignItems: 'center', marginTop: spacing.md, gap: spacing.md },
   badge: {
-    paddingHorizontal: 10,
+    paddingHorizontal: spacing.md,
     paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#dcfce7',
+    borderRadius: radius.sm,
+    backgroundColor: colors.successBg,
   },
-  badgeSold: { backgroundColor: '#fef3c7' },
-  badgeText: { fontSize: 12, fontWeight: '600', color: '#166534', textTransform: 'capitalize' },
-  category: { fontSize: 13, color: '#64748b' },
+  badgeSold: { backgroundColor: colors.warningBg },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.success,
+    textTransform: 'capitalize',
+  },
+  category: { ...typography.caption, color: colors.textMuted },
   editItemBtn: {
-    marginTop: 16,
+    marginTop: spacing.lg,
     paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: '#f1f5f9',
-    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radius.sm,
     alignSelf: 'flex-start',
   },
-  editItemBtnText: { fontSize: 14, fontWeight: '600', color: '#334155' },
-  offerSection: { padding: 20, backgroundColor: '#fff', marginTop: 12 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#334155', marginBottom: 12 },
+  editItemBtnText: { fontSize: 14, fontWeight: '600', color: colors.text },
+  offerSection: {
+    padding: spacing.xl,
+    backgroundColor: colors.surface,
+    marginTop: spacing.md,
+  },
+  sectionTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.md },
   input: {
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#f8fafc',
-    marginBottom: 10,
+    backgroundColor: colors.background,
+    marginBottom: spacing.md,
   },
   messageInput: { minHeight: 80 },
   offerBtn: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: radius.md,
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: spacing.xs,
   },
-  offerBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  similarSection: { padding: 20 },
-  similarHint: { fontSize: 14, color: '#64748b', marginBottom: 12 },
-  similarList: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  offerBtnText: { color: colors.textOnAccent, fontSize: 16, fontWeight: '700' },
+  disabled: { opacity: 0.6 },
+  similarSection: { padding: spacing.xl },
+  similarHint: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.md },
+  similarList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   similarCard: {
-    backgroundColor: '#fff',
-    padding: 14,
-    borderRadius: 10,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
     minWidth: 140,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadow.sm,
   },
-  similarLabel: { fontSize: 14, fontWeight: '600', color: '#1e293b' },
-  similarValue: { fontSize: 13, color: '#22c55e', marginTop: 2 },
+  similarLabel: { ...typography.h3, color: colors.text, fontSize: 14 },
+  similarValue: { fontSize: 14, fontWeight: '700', color: colors.success, marginTop: 2 },
 });

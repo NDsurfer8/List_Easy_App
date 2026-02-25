@@ -13,7 +13,9 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useListEasy } from '../context/ListEasyContext';
+import { theme } from '../lib/theme';
 
+const { colors, spacing, radius, typography, shadow } = theme;
 const ALL = '';
 
 export default function BrowseScreen() {
@@ -38,9 +40,9 @@ export default function BrowseScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Browse by zip code</Text>
+        <Text style={styles.headerTitle}>Browse by zip</Text>
         <Text style={styles.headerSub}>
-          Search by zip to view listings and room videos. Tap a listing to see items and make offers.
+          Find room listings near you. Tap one to see items and make offers.
         </Text>
       </View>
 
@@ -49,15 +51,15 @@ export default function BrowseScreen() {
           style={styles.zipInput}
           value={zipInput}
           onChangeText={(t) => setZipInput(t.replace(/\D/g, '').slice(0, 5))}
-          placeholder="Enter zip code"
-          placeholderTextColor="#94a3b8"
+          placeholder="ZIP code"
+          placeholderTextColor={colors.textMuted}
           keyboardType="number-pad"
           maxLength={5}
         />
         <TouchableOpacity
           style={styles.searchBtn}
           onPress={() => setSearchZip(normalizedZip || ALL)}
-          activeOpacity={0.85}
+          activeOpacity={0.88}
         >
           <Text style={styles.searchBtnText}>Search</Text>
         </TouchableOpacity>
@@ -72,16 +74,16 @@ export default function BrowseScreen() {
           <TouchableOpacity
             style={[styles.chip, showAll && styles.chipSelected]}
             onPress={() => setSearchZip(ALL)}
-            activeOpacity={0.8}
+            activeOpacity={0.88}
           >
-            <Text style={[styles.chipText, showAll && styles.chipTextSelected]}>All listings</Text>
+            <Text style={[styles.chipText, showAll && styles.chipTextSelected]}>All</Text>
           </TouchableOpacity>
           {zipCodes.map((zip) => (
             <TouchableOpacity
               key={zip}
               style={[styles.chip, searchZip === zip && styles.chipSelected]}
               onPress={() => setSearchZip(zip)}
-              activeOpacity={0.8}
+              activeOpacity={0.88}
             >
               <Text style={[styles.chipText, searchZip === zip && styles.chipTextSelected]}>
                 {zip}
@@ -91,19 +93,18 @@ export default function BrowseScreen() {
         </ScrollView>
       </View>
 
-      {!showAll && searchZip && (
-        <Text style={styles.resultLabel}>Listings in {searchZip}</Text>
-      )}
+      {!showAll && searchZip ? (
+        <Text style={styles.resultLabel}>In {searchZip}</Text>
+      ) : null}
 
       {listings.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>No listings found</Text>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptyTitle}>No listings here</Text>
           <Text style={styles.emptySub}>
             {showAll
-              ? 'Listings will show up when sellers add room videos or photos and set a zip code.'
-              : searchZip
-                ? `No listings in zip ${searchZip}. Try "All listings" or another zip.`
-                : 'Enter a zip code and tap Search, or choose "All listings".'}
+              ? 'When sellers list rooms with a zip code, they’ll show up here.'
+              : `Nothing in ${searchZip}. Try another zip or "All".`}
           </Text>
         </View>
       ) : (
@@ -115,7 +116,7 @@ export default function BrowseScreen() {
             <TouchableOpacity
               style={styles.card}
               onPress={() => router.push(`/listing/${item.id}`)}
-              activeOpacity={0.9}
+              activeOpacity={0.92}
             >
               <Image
                 source={{ uri: item.thumbnailUri }}
@@ -127,14 +128,13 @@ export default function BrowseScreen() {
                   {item.title || 'Room listing'}
                 </Text>
                 {item.zipCode ? (
-                  <Text style={styles.cardZip}>ZIP {item.zipCode}</Text>
+                  <Text style={styles.cardZip}>{item.zipCode}</Text>
                 ) : null}
                 <Text style={styles.cardMeta}>
-                  {item.items.length} item{item.items.length !== 1 ? 's' : ''} · Tap to view & make
-                  offers
+                  {item.items.length} item{item.items.length !== 1 ? 's' : ''}
                 </Text>
               </View>
-              <Text style={styles.cardArrow}>→</Text>
+              <Text style={styles.cardArrow}>›</Text>
             </TouchableOpacity>
           )}
         />
@@ -144,93 +144,108 @@ export default function BrowseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
-    backgroundColor: '#0f172a',
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 16,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#f8fafc' },
-  headerSub: { fontSize: 14, color: '#94a3b8', marginTop: 6, lineHeight: 20 },
+  headerTitle: {
+    ...typography.h1,
+    color: colors.textOnPrimary,
+    fontSize: 22,
+  },
+  headerSub: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    gap: 10,
+    borderBottomColor: colors.border,
+    gap: spacing.md,
   },
   zipInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.lg,
     paddingVertical: 12,
     fontSize: 18,
-    backgroundColor: '#f8fafc',
+    backgroundColor: colors.background,
   },
   searchBtn: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.accent,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    paddingHorizontal: spacing.xl,
+    borderRadius: radius.md,
   },
-  searchBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  searchBtnText: { color: colors.textOnAccent, fontSize: 16, fontWeight: '700' },
   chipRow: { maxHeight: 48 },
   chipScroll: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#e2e8f0',
-    marginRight: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    backgroundColor: colors.surfaceMuted,
+    marginRight: spacing.sm,
   },
-  chipSelected: { backgroundColor: '#0f172a' },
-  chipText: { fontSize: 14, fontWeight: '600', color: '#475569' },
-  chipTextSelected: { color: '#fff' },
+  chipSelected: { backgroundColor: colors.primary },
+  chipText: { fontSize: 14, fontWeight: '600', color: colors.textSecondary },
+  chipTextSelected: { color: colors.textOnPrimary },
   resultLabel: {
-    fontSize: 14,
-    color: '#64748b',
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 8,
+    ...typography.caption,
+    color: colors.textMuted,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.sm,
   },
   empty: {
     flex: 1,
-    padding: 24,
+    padding: spacing.xxl,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#334155', marginBottom: 8 },
-  emptySub: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 22 },
-  list: { padding: 16, paddingBottom: 32 },
+  emptyIcon: { fontSize: 40, marginBottom: spacing.lg },
+  emptyTitle: { ...typography.h3, color: colors.textSecondary, marginBottom: spacing.sm },
+  emptySub: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  list: { padding: spacing.lg, paddingBottom: 40 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    ...shadow.sm,
   },
-  cardThumb: { width: 100, height: 100, backgroundColor: '#e2e8f0' },
-  cardBody: { flex: 1, padding: 14 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#1e293b' },
-  cardZip: { fontSize: 13, color: '#64748b', marginTop: 2 },
-  cardMeta: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
-  cardArrow: { fontSize: 18, color: '#94a3b8', paddingRight: 14 },
+  cardThumb: { width: 88, height: 88, backgroundColor: colors.surfaceMuted },
+  cardBody: { flex: 1, padding: spacing.lg },
+  cardTitle: { ...typography.h3, color: colors.text, fontSize: 16 },
+  cardZip: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  cardMeta: { ...typography.caption, color: colors.textMuted, marginTop: 2 },
+  cardArrow: {
+    fontSize: 22,
+    color: colors.textMuted,
+    paddingRight: spacing.lg,
+    fontWeight: '300',
+  },
 });

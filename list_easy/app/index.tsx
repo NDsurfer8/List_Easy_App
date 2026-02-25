@@ -1,6 +1,9 @@
-import { Text, View, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { Text, View, TouchableOpacity, FlatList, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useListEasy } from '../context/ListEasyContext';
+import { theme } from '../lib/theme';
+
+const { colors, spacing, radius, typography, shadow } = theme;
 
 export default function Home() {
   const router = useRouter();
@@ -9,32 +12,38 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
+        <Text style={styles.heroLabel}>List Easy</Text>
         <Text style={styles.heroTitle}>Sell what you see</Text>
         <Text style={styles.heroSub}>
-          Film your room, tap items to get AI values, and let buyers make offers & pick up.
+          Film your room, tap items for AI values, and let buyers make offers and pick up.
         </Text>
-        <TouchableOpacity
-          style={styles.uploadBtn}
-          onPress={() => router.push('/upload')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.uploadBtnText}>Upload room video</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.browseBtn}
-          onPress={() => router.push('/browse')}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.browseBtnText}>Browse by zip code</Text>
-        </TouchableOpacity>
+        <View style={styles.heroActions}>
+          <TouchableOpacity
+            style={styles.uploadBtn}
+            onPress={() => router.push('/upload')}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.uploadBtnText}>List your room</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.browseBtn}
+            onPress={() => router.push('/browse')}
+            activeOpacity={0.88}
+          >
+            <Text style={styles.browseBtnText}>Browse by zip</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Your listings</Text>
         {listings.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No room videos yet.</Text>
-            <Text style={styles.emptySub}>Upload a video to start listing items.</Text>
+            <View style={styles.emptyIcon}>
+              <Text style={styles.emptyIconText}>📦</Text>
+            </View>
+            <Text style={styles.emptyTitle}>No listings yet</Text>
+            <Text style={styles.emptySub}>List your room to start selling. It only takes a minute.</Text>
           </View>
         ) : (
           <FlatList
@@ -44,17 +53,23 @@ export default function Home() {
               <TouchableOpacity
                 style={styles.card}
                 onPress={() => router.push(`/listing/${item.id}`)}
-                activeOpacity={0.9}
+                activeOpacity={0.92}
               >
+                <Image
+                  source={{ uri: item.thumbnailUri }}
+                  style={styles.cardImage}
+                  resizeMode="cover"
+                />
                 <View style={styles.cardContent}>
                   <Text style={styles.cardTitle} numberOfLines={1}>
                     {item.title || 'Room listing'}
                   </Text>
                   <Text style={styles.cardMeta}>
                     {item.items.length} item{item.items.length !== 1 ? 's' : ''}
+                    {item.zipCode ? ` · ${item.zipCode}` : ''}
                   </Text>
                 </View>
-                <Text style={styles.cardArrow}>→</Text>
+                <Text style={styles.cardArrow}>›</Text>
               </TouchableOpacity>
             )}
           />
@@ -62,11 +77,11 @@ export default function Home() {
       </View>
 
       <TouchableOpacity
-        style={styles.offersLink}
+        style={styles.footerLink}
         onPress={() => router.push('/offers')}
         activeOpacity={0.8}
       >
-        <Text style={styles.offersLinkText}>View offers & pickups</Text>
+        <Text style={styles.footerLinkText}>Offers & pickups</Text>
       </TouchableOpacity>
     </View>
   );
@@ -75,116 +90,141 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: colors.background,
   },
   hero: {
-    backgroundColor: '#0f172a',
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 32,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.xxl,
+    paddingTop: 32,
+    paddingBottom: 36,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+    ...shadow.md,
+  },
+  heroLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.accentMuted,
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
   },
   heroTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#f8fafc',
-    marginBottom: 8,
+    ...typography.hero,
+    color: colors.textOnPrimary,
+    marginBottom: spacing.sm,
   },
   heroSub: {
-    fontSize: 15,
-    color: '#94a3b8',
-    lineHeight: 22,
-    marginBottom: 20,
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginBottom: spacing.xl,
+  },
+  heroActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
   },
   uploadBtn: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: colors.accent,
     paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
+    paddingHorizontal: 22,
+    borderRadius: radius.md,
   },
   uploadBtnText: {
-    color: '#fff',
+    color: colors.textOnAccent,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   browseBtn: {
-    backgroundColor: 'transparent',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-    borderWidth: 2,
-    borderColor: '#64748b',
-    marginTop: 10,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    paddingVertical: 14,
+    paddingHorizontal: 22,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   browseBtnText: {
-    color: '#e2e8f0',
-    fontSize: 15,
+    color: colors.textOnPrimary,
+    fontSize: 16,
     fontWeight: '600',
   },
   section: {
     flex: 1,
-    padding: 20,
+    padding: spacing.xl,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#334155',
-    marginBottom: 12,
+    ...typography.h3,
+    color: colors.text,
+    marginBottom: spacing.lg,
   },
   empty: {
-    paddingVertical: 32,
+    paddingVertical: 48,
     alignItems: 'center',
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#64748b',
-    marginBottom: 4,
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  emptyIconText: { fontSize: 32 },
+  emptyTitle: {
+    ...typography.h3,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
   emptySub: {
-    fontSize: 14,
-    color: '#94a3b8',
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
   },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    overflow: 'hidden',
+    ...shadow.sm,
   },
-  cardContent: {},
+  cardImage: {
+    width: 72,
+    height: 72,
+    backgroundColor: colors.surfaceMuted,
+  },
+  cardContent: {
+    flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
   cardTitle: {
+    ...typography.h3,
+    color: colors.text,
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
   },
   cardMeta: {
-    fontSize: 13,
-    color: '#64748b',
+    ...typography.caption,
+    color: colors.textMuted,
     marginTop: 2,
   },
   cardArrow: {
-    fontSize: 18,
-    color: '#94a3b8',
+    fontSize: 24,
+    color: colors.textMuted,
+    paddingRight: spacing.lg,
+    fontWeight: '300',
   },
-  offersLink: {
-    padding: 20,
+  footerLink: {
+    padding: spacing.xl,
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
+    borderTopColor: colors.border,
   },
-  offersLinkText: {
-    fontSize: 15,
-    color: '#3b82f6',
-    fontWeight: '500',
+  footerLinkText: {
+    ...typography.bodySmall,
+    color: colors.accent,
+    fontWeight: '600',
   },
 });

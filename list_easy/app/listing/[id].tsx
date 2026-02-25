@@ -1,6 +1,9 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { useListEasy } from '../../context/ListEasyContext';
+import { theme } from '../../lib/theme';
+
+const { colors, spacing, radius, typography, shadow } = theme;
 
 export default function ListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,14 +50,14 @@ export default function ListingScreen() {
           <TouchableOpacity
             style={styles.playVideoBtn}
             onPress={() => router.push(`/video/${listing.id}`)}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
           >
             <Text style={styles.playVideoBtnText}>▶ Play room video</Text>
           </TouchableOpacity>
         ) : null}
         <Text style={styles.title}>{listing.title}</Text>
         {listing.zipCode ? (
-          <Text style={styles.location}>ZIP {listing.zipCode}</Text>
+          <Text style={styles.location}>{listing.zipCode}</Text>
         ) : null}
         <Text style={styles.meta}>
           {listing.items.length} item{listing.items.length !== 1 ? 's' : ''} · Tap to view & make offers
@@ -63,12 +66,12 @@ export default function ListingScreen() {
           <TouchableOpacity
             style={styles.editBtn}
             onPress={() => router.push(`/listing/edit/${id}`)}
-            activeOpacity={0.85}
+            activeOpacity={0.88}
           >
-            <Text style={styles.editBtnText}>Edit listing</Text>
+            <Text style={styles.editBtnText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.85}>
-            <Text style={styles.deleteBtnText}>Delete listing</Text>
+          <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete} activeOpacity={0.88}>
+            <Text style={styles.deleteBtnText}>Delete</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -80,16 +83,16 @@ export default function ListingScreen() {
           <TouchableOpacity
             style={styles.card}
             onPress={() => router.push(`/item/${item.id}`)}
-            activeOpacity={0.9}
+            activeOpacity={0.92}
           >
             <View style={styles.cardContent}>
               <Text style={styles.cardLabel}>{item.label}</Text>
-              <Text style={styles.cardValue}>Est. ${item.estimatedValue}</Text>
+              <Text style={styles.cardValue}>${item.estimatedValue}</Text>
               <View style={[styles.badge, item.status !== 'available' && styles.badgeSold]}>
                 <Text style={styles.badgeText}>{item.status}</Text>
               </View>
             </View>
-            <Text style={styles.cardArrow}>→</Text>
+            <Text style={styles.cardArrow}>›</Text>
           </TouchableOpacity>
         )}
       />
@@ -98,77 +101,78 @@ export default function ListingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: colors.background },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { color: '#dc2626', fontSize: 16 },
+  error: { ...typography.body, color: colors.error },
   header: {
-    backgroundColor: '#fff',
-    padding: 16,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    borderBottomColor: colors.border,
   },
   thumb: {
     width: '100%',
-    height: 180,
-    borderRadius: 12,
-    backgroundColor: '#e2e8f0',
+    height: 200,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surfaceMuted,
   },
   playVideoBtn: {
-    marginTop: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    backgroundColor: '#0f172a',
-    borderRadius: 10,
+    marginTop: spacing.md,
+    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.accent,
+    borderRadius: radius.sm,
     alignSelf: 'flex-start',
   },
-  playVideoBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  title: { fontSize: 20, fontWeight: '700', color: '#1e293b', marginTop: 12 },
-  location: { fontSize: 14, color: '#64748b', marginTop: 4 },
-  meta: { fontSize: 14, color: '#64748b', marginTop: 4 },
-  actions: { flexDirection: 'row', marginTop: 16, gap: 10 },
+  playVideoBtnText: { color: colors.textOnAccent, fontSize: 14, fontWeight: '700' },
+  title: { ...typography.h2, color: colors.text, marginTop: spacing.lg },
+  location: { ...typography.bodySmall, color: colors.textMuted, marginTop: spacing.xs },
+  meta: { ...typography.bodySmall, color: colors.textMuted, marginTop: spacing.xs },
+  actions: { flexDirection: 'row', marginTop: spacing.lg, gap: spacing.md },
   editBtn: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#0f172a',
-    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.primary,
+    borderRadius: radius.sm,
   },
-  editBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  editBtnText: { color: colors.textOnPrimary, fontSize: 14, fontWeight: '600' },
   deleteBtn: {
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#fef2f2',
-    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.errorBg,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: '#fecaca',
   },
-  deleteBtnText: { color: '#dc2626', fontSize: 14, fontWeight: '600' },
-  list: { padding: 16 },
+  deleteBtnText: { color: colors.error, fontSize: 14, fontWeight: '600' },
+  list: { padding: spacing.lg },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    backgroundColor: colors.surface,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    marginBottom: spacing.md,
+    ...shadow.sm,
   },
   cardContent: {},
-  cardLabel: { fontSize: 16, fontWeight: '600', color: '#1e293b' },
-  cardValue: { fontSize: 14, color: '#22c55e', marginTop: 2 },
+  cardLabel: { ...typography.h3, color: colors.text, fontSize: 16 },
+  cardValue: { fontSize: 16, fontWeight: '700', color: colors.success, marginTop: 2 },
   badge: {
     alignSelf: 'flex-start',
-    marginTop: 6,
-    paddingHorizontal: 8,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#dcfce7',
+    borderRadius: radius.sm,
+    backgroundColor: colors.successBg,
   },
-  badgeSold: { backgroundColor: '#fef3c7' },
-  badgeText: { fontSize: 12, color: '#166534', fontWeight: '500', textTransform: 'capitalize' },
-  cardArrow: { fontSize: 18, color: '#94a3b8' },
+  badgeSold: { backgroundColor: colors.warningBg },
+  badgeText: {
+    fontSize: 12,
+    color: colors.success,
+    fontWeight: '600',
+    textTransform: 'capitalize',
+  },
+  cardArrow: { fontSize: 22, color: colors.textMuted, fontWeight: '300' },
 });

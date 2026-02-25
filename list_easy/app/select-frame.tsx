@@ -19,8 +19,10 @@ import { useListEasy } from '../context/ListEasyContext';
 import { FrameSelector } from '../components/FrameSelector';
 import { getAIValuation } from '../lib/ai';
 import type { SelectionBox } from '../lib/types';
+import { theme } from '../lib/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { colors, spacing, radius } = theme;
 
 type PendingItem = {
   id: string;
@@ -420,12 +422,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   saveBtn: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     alignItems: 'center',
     marginTop: 24,
   },
   saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { color: colors.textOnPrimary, fontSize: 16, fontWeight: '700' },
 });
