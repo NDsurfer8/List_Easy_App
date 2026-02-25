@@ -1,10 +1,12 @@
 import { Stack } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ListEasyProvider } from '../context/ListEasyContext';
 import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
   return (
-    <ListEasyProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ListEasyProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -20,6 +22,7 @@ export default function RootLayout() {
         <Stack.Screen name="item/[id]" options={{ title: 'Item' }} />
         <Stack.Screen name="offers" options={{ title: 'Offers & Pickups' }} />
       </Stack>
-    </ListEasyProvider>
+      </ListEasyProvider>
+    </GestureHandlerRootView>
   );
 }
