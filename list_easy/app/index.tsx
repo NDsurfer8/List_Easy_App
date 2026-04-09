@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   },
   heroSub: {
     ...typography.bodySmall,
-    color: colors.textMuted,
+    color: colors.textOnPrimaryMuted,
     marginBottom: spacing.xl,
   },
   heroActions: {

@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useListEasy } from '../../../context/ListEasyContext';
+import { theme } from '../../../lib/theme';
+
+const { colors } = theme;
 
 export default function EditItemScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -90,27 +93,27 @@ export default function EditItemScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { color: '#dc2626', fontSize: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 6, marginTop: 16 },
+  error: { color: colors.error, fontSize: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 16 },
   input: {
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
   textArea: { minHeight: 80 },
   saveBtn: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 24,
   },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { color: colors.textOnPrimary, fontSize: 16, fontWeight: '600' },
 });

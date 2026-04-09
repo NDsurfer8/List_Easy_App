@@ -3,6 +3,9 @@ import { useLocalSearchParams } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { useRef, useState } from 'react';
 import { useListEasy } from '../../context/ListEasyContext';
+import { theme } from '../../lib/theme';
+
+const { colors } = theme;
 
 export default function VideoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,8 +55,8 @@ export default function VideoScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f1f5f9' },
-  error: { color: '#dc2626', fontSize: 16 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
+  error: { color: colors.error, fontSize: 16 },
   video: { flex: 1, width: '100%' },
   caption: {
     position: 'absolute',

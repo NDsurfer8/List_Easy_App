@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo } from "react";
 import {
   View,
   Image,
@@ -6,11 +6,13 @@ import {
   Dimensions,
   Text,
   ActivityIndicator,
-} from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Rect } from 'react-native-svg';
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Svg, { Rect } from "react-native-svg";
+import { theme } from "../lib/theme";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { colors } = theme;
 const IMAGE_WIDTH = SCREEN_WIDTH - 32;
 
 type Box = { id: string; x: number; y: number; width: number; height: number };
@@ -20,7 +22,12 @@ type FrameSelectorProps = {
   imageWidth: number;
   imageHeight: number;
   boxes: Box[];
-  onBoxAdd: (box: { x: number; y: number; width: number; height: number }) => void;
+  onBoxAdd: (box: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }) => void;
   loading?: boolean;
 };
 
@@ -87,31 +94,45 @@ export function FrameSelector({
           setStart(null);
           setCurrent(null);
         }),
-    [displayWidth, displayHeight, onBoxAdd]
+    [displayWidth, displayHeight, onBoxAdd],
   );
 
-  const drawingBox = start && current ? (
-    <Rect
-      x={Math.min(start.x, current.x)}
-      y={Math.min(start.y, current.y)}
-      width={Math.abs(current.x - start.x)}
-      height={Math.abs(current.y - start.y)}
-      stroke="#3b82f6"
-      strokeWidth={2}
-      fill="rgba(59, 130, 246, 0.2)"
-    />
-  ) : null;
+  const drawingBox =
+    start && current ? (
+      <Rect
+        x={Math.min(start.x, current.x)}
+        y={Math.min(start.y, current.y)}
+        width={Math.abs(current.x - start.x)}
+        height={Math.abs(current.y - start.y)}
+        stroke={colors.primaryLight}
+        strokeWidth={2}
+        fill="rgba(14, 165, 233, 0.22)"
+      />
+    ) : null;
 
   return (
     <View style={styles.wrapper}>
       <GestureDetector gesture={panGesture}>
-        <View style={[styles.touchArea, { width: displayWidth, height: displayHeight }]}>
+        <View
+          style={[
+            styles.touchArea,
+            { width: displayWidth, height: displayHeight },
+          ]}
+        >
           <Image
             source={{ uri: imageUri }}
-            style={[styles.image, { width: displayWidth, height: displayHeight }]}
+            style={[
+              styles.image,
+              { width: displayWidth, height: displayHeight },
+            ]}
             resizeMode="stretch"
           />
-          <Svg style={[StyleSheet.absoluteFill, { width: displayWidth, height: displayHeight }]}>
+          <Svg
+            style={[
+              StyleSheet.absoluteFill,
+              { width: displayWidth, height: displayHeight },
+            ]}
+          >
             {boxes.map((b) => (
               <Rect
                 key={b.id}
@@ -119,9 +140,9 @@ export function FrameSelector({
                 y={(b.y / 100) * displayHeight}
                 width={(b.width / 100) * displayWidth}
                 height={(b.height / 100) * displayHeight}
-                stroke="#22c55e"
+                stroke={colors.success}
                 strokeWidth={2}
-                fill="rgba(34, 197, 94, 0.15)"
+                fill="rgba(22, 163, 74, 0.18)"
               />
             ))}
             {drawingBox}
@@ -140,24 +161,24 @@ export function FrameSelector({
 
 const styles = StyleSheet.create({
   wrapper: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 8,
   },
   touchArea: {
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   image: {
     borderRadius: 12,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    color: '#fff',
+    color: "#fff",
     marginTop: 8,
     fontSize: 14,
   },

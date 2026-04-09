@@ -11,6 +11,9 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useListEasy } from '../../../context/ListEasyContext';
 import type { ListedItem } from '../../../lib/types';
+import { theme } from '../../../lib/theme';
+
+const { colors } = theme;
 
 export default function EditListingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -136,58 +139,58 @@ export default function EditListingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f1f5f9' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 40 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { color: '#dc2626', fontSize: 16 },
-  label: { fontSize: 14, fontWeight: '600', color: '#334155', marginBottom: 6, marginTop: 16 },
-  hint: { fontSize: 13, color: '#64748b', marginBottom: 10 },
+  error: { color: colors.error, fontSize: 16 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.textSecondary, marginBottom: 6, marginTop: 16 },
+  hint: { fontSize: 13, color: colors.textMuted, marginBottom: 10 },
   input: {
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
   },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     padding: 14,
     borderRadius: 10,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: colors.border,
   },
   itemInfo: {},
-  itemLabel: { fontSize: 15, fontWeight: '600', color: '#1e293b' },
-  itemValue: { fontSize: 13, color: '#22c55e', marginTop: 2 },
+  itemLabel: { fontSize: 15, fontWeight: '600', color: colors.text },
+  itemValue: { fontSize: 13, color: colors.success, marginTop: 2 },
   removeBtn: {
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.errorBg,
     borderRadius: 6,
   },
-  removeBtnText: { fontSize: 13, fontWeight: '600', color: '#dc2626' },
+  removeBtnText: { fontSize: 13, fontWeight: '600', color: colors.error },
   saveBtn: {
-    backgroundColor: '#0f172a',
+    backgroundColor: colors.primary,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 24,
   },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  saveBtnText: { color: colors.textOnPrimary, fontSize: 16, fontWeight: '600' },
   deleteListingBtn: {
     marginTop: 12,
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#fecaca',
+    borderColor: colors.border,
     borderRadius: 12,
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.errorBg,
   },
-  deleteListingBtnText: { color: '#dc2626', fontSize: 15, fontWeight: '600' },
+  deleteListingBtnText: { color: colors.error, fontSize: 15, fontWeight: '600' },
 });

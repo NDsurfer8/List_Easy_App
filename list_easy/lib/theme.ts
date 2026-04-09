@@ -1,36 +1,38 @@
 /**
- * Design tokens for a polished, sellable look
+ * Design tokens – bright, friendly palette (sky + warm accent)
  */
 export const theme = {
   colors: {
-    // Primary brand – deep, trustworthy
-    primary: '#0f172a',
-    primaryLight: '#1e293b',
-    primaryMuted: '#334155',
-    // Accent – clear CTAs, links
-    accent: '#0d9488',
-    accentHover: '#0f766e',
-    accentMuted: '#5eead4',
-    // Surfaces
-    background: '#f8fafc',
+    // Primary – vivid sky blue (headers, key actions)
+    primary: '#0284c7',
+    primaryLight: '#0ea5e9',
+    primaryMuted: '#38bdf8',
+    // Accent – warm coral for CTAs and highlights
+    accent: '#f97316',
+    accentHover: '#ea580c',
+    accentMuted: '#fdba74',
+    // Surfaces – airy, light backgrounds
+    background: '#f0f9ff',
     surface: '#ffffff',
-    surfaceMuted: '#f1f5f9',
-    // Text
-    text: '#0f172a',
-    textSecondary: '#475569',
-    textMuted: '#94a3b8',
-    textOnPrimary: '#f8fafc',
+    surfaceMuted: '#e0f2fe',
+    // Text – readable without harsh black
+    text: '#0c4a6e',
+    textSecondary: '#0369a1',
+    textMuted: '#64748b',
+    textOnPrimary: '#ffffff',
+    /** Subtitle / secondary on primary-colored headers */
+    textOnPrimaryMuted: 'rgba(255,255,255,0.88)',
     textOnAccent: '#ffffff',
     // Status
-    success: '#059669',
-    successBg: '#d1fae5',
+    success: '#16a34a',
+    successBg: '#dcfce7',
     warning: '#d97706',
-    warningBg: '#fef3c7',
-    error: '#dc2626',
-    errorBg: '#fef2f2',
-    // Borders
-    border: '#e2e8f0',
-    borderLight: '#f1f5f9',
+    warningBg: '#fef9c3',
+    error: '#e11d48',
+    errorBg: '#ffe4e6',
+    // Borders – soft sky tint
+    border: '#bae6fd',
+    borderLight: '#e0f2fe',
   },
   spacing: {
     xs: 4,
@@ -59,24 +61,24 @@ export const theme = {
   },
   shadow: {
     sm: {
-      shadowColor: '#000',
+      shadowColor: '#0369a1',
       shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.04,
-      shadowRadius: 2,
+      shadowOpacity: 0.08,
+      shadowRadius: 3,
       elevation: 2,
     },
     md: {
-      shadowColor: '#000',
+      shadowColor: '#0369a1',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 6,
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
       elevation: 3,
     },
     lg: {
-      shadowColor: '#000',
+      shadowColor: '#0369a1',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
+      shadowOpacity: 0.12,
+      shadowRadius: 14,
       elevation: 5,
     },
   },

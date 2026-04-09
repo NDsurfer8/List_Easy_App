@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   },
   headerSub: {
     ...typography.bodySmall,
-    color: colors.textMuted,
+    color: colors.textOnPrimaryMuted,
     marginTop: spacing.sm,
   },
   searchRow: {
